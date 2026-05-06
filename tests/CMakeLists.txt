@@ -1,0 +1,4 @@
+# 单元测试构建配置
+add_executable(test_msg_framework test_msg_framework.c)
+target_link_libraries(test_msg_framework msg_framework)
+add_test(NAME test_msg_framework COMMAND test_msg_framework)
