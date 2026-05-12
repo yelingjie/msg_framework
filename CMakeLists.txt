@@ -40,6 +40,7 @@ endif()
 # ============================================================
 set(FRAMEWORK_SOURCES
     ${FRAMEWORK_SRC_DIR}/msg_framework.c
+    ${FRAMEWORK_SRC_DIR}/mf_mempool.c
     ${PORT_SRC}
 )
 

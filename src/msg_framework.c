@@ -7,15 +7,15 @@
 #include <stdint.h>
 #include <string.h>
 #include "include/msg_framework.h"
+#include "include/mf_mempool.h"
 #include "mf_port.h"
 
 /* ============================================================
  * 版本信息
  * ============================================================ */
 #define MF_VERSION_MAJOR   1
-#define MF_VERSION_MINOR   0
-#define MF_VERSION_STR     "1.0.0"
-
+#define MF_VERSION_MINOR   1
+#define MF_VERSION_STR     "1.1.0"
 
 /** 模块队列映射节点 */
 typedef struct {
@@ -64,6 +64,10 @@ int mf_init(mf_config_t* p_config)
     if (p_config != NULL) {
         s_debug_enable = p_config->enable_debug;
     }
+
+#if MF_MEM_POOL_ENABLE
+    mf_mem_pool_init();
+#endif
 
     s_initialized = 1;
     return MF_OK;
@@ -230,7 +234,11 @@ int mf_send_msg(uint8_t src_moduleid, uint8_t dest_moduleid,
 
     /* 复制数据 */
     if (p_data != NULL && data_len > 0) {
+#if MF_MEM_POOL_ENABLE
+        p_copy = (uint8_t*)mf_mempool_alloc(data_len);
+#else
         p_copy = (uint8_t*)mf_port_malloc(data_len);
+#endif
         if (p_copy == NULL) {
             return MF_ENOMEM;
         }
@@ -251,7 +259,11 @@ int mf_send_msg(uint8_t src_moduleid, uint8_t dest_moduleid,
     int ret = mf_internal_send(dest_moduleid, &msg);
     if (ret != MF_OK) {
         if (p_copy != NULL) {
+#if MF_MEM_POOL_ENABLE
+            mf_mempool_free(p_copy);
+#else
             mf_port_free(p_copy);
+#endif
         }
         return ret;
     }
@@ -301,7 +313,11 @@ void mf_free_msg(mf_message_t* p_msg)
     }
 
     if (p_msg->pdata != NULL) {
+#if MF_MEM_POOL_ENABLE
+        mf_mempool_free(p_msg->pdata);
+#else
         mf_port_free(p_msg->pdata);
+#endif
         p_msg->pdata = NULL;
     }
     p_msg->datalen = 0;
@@ -335,7 +351,11 @@ int mf_flush(uint8_t module_id)
     mf_message_t msg;
     while (mf_port_mq_recv(p_entry->node.mq, &msg, sizeof(msg), 0) == MF_PORT_OK) {
         if (msg.pdata != NULL) {
+#if MF_MEM_POOL_ENABLE
+            mf_mempool_free(msg.pdata);
+#else
             mf_port_free(msg.pdata);
+#endif
         }
     }
 

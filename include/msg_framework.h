@@ -26,6 +26,37 @@ extern "C" {
 #endif
 
 /* ============================================================
+ * 内存池配置（可选）
+ * ============================================================ */
+/**
+ * @brief 开启内存池
+ * @note 开启后可减少频繁 malloc/free 导致的内存碎片
+ *       使用 MF_MEM_POOL_BUF_SIZE 设置池大小
+ * @note 需在 include msg_framework.h 之前定义
+ */
+#ifndef MF_MEM_POOL_ENABLE
+#define MF_MEM_POOL_ENABLE      0
+#endif
+
+/**
+ * @brief 内存池总大小（字节）
+ * @note 仅在 MF_MEM_POOL_ENABLE 为 1 时生效
+ *       需要根据实际消息大小和并发量调整
+ */
+#ifndef MF_MEM_POOL_BUF_SIZE
+#define MF_MEM_POOL_BUF_SIZE    4096
+#endif
+
+/**
+ * @brief 单个内存块大小（字节）
+ * @note 仅在 MF_MEM_POOL_ENABLE 为 1 时生效
+ *       应大于等于应用层最大消息大小
+ */
+#ifndef MF_MEM_POOL_BLOCK_SIZE
+#define MF_MEM_POOL_BLOCK_SIZE  256
+#endif
+
+/* ============================================================
  * 错误码定义
  * ============================================================ */
 #define MF_OK       0   /**< 成功 */
@@ -56,7 +87,7 @@ typedef struct {
 } mf_message_t;
 
 /* ============================================================
- * 配置选项
+ * 框架配置
  * ============================================================ */
 /** 框架配置 */
 typedef struct {
